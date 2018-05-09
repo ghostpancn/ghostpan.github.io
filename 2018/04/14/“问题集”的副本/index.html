@@ -1,0 +1,721 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title>  · Ghostpan's blog</title><meta name="description" content=" - Ghostpan"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://blog.ghostpan.com/atom.xml" title="Ghostpan's blog"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/flat_red_ghostpan.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li><li class="nav-list-item"><a href="https://github.com/ghostpancn" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title"></h1><div class="post-info">Apr 14, 2018</div><div class="post-content"><ol>
+<li><p>什么情况使用 weak 关键字，相比 assign 有什么不同？</p>
+<blockquote>
+<ol>
+<li>在避免两个对象相互强引用导致循环引用造成内存泄露的情况下，对一方使用 weak 避免循环引用</li>
+<li>当对象已经被需要持有它的对象强引用过（包括被它的变量持有）或者被一个全局变量引用的情况下没有必要再进行强引用时可以用 weak</li>
+</ol>
+<p>assign 和 weak 都是简单赋值操作，没有引用计数管理</p>
+<p>weak 会在对象被销毁之后将 weak 置为 nil</p>
+<p>weak 只能用于对象，assign 可以用于非 OC 对象</p>
+</blockquote>
+</li>
+<li><p>怎么用 copy 关键字？</p>
+<blockquote>
+<p>把一个可变的 String，Array，Dictionary 对象变为不可变对象</p>
+<p>block 也会用到 copy 关键字 （ARC 下 copy 和 strong 是一样的，都会放在堆区）</p>
+</blockquote>
+</li>
+<li><p>这个写法会出什么问题： @property (copy) NSMutableArray *array;</p>
+<blockquote>
+<p>copy 关键字会在对象赋值时进行 copy 操作，得到的是一个不可变对象，之后如果对 array 做可变操作会造成程序崩溃</p>
+<p>属性默认是 atomic 的，性能低</p>
+</blockquote>
+</li>
+<li><p>如何让自己的类用 copy 修饰符？如何重写带 copy 关键字的 setter？</p>
+<blockquote>
+<p>需要实现 NSCopying协议 （如果对象分为可变和不可变版本则需要实现 NSMutableCopying协议）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&gt; Person.m</span><br><span class="line">&gt; - (id)copyWithZone:(NSZone *)zone</span><br><span class="line">&gt; &#123;</span><br><span class="line">&gt; 	Person *person = [[[self class] allocWithZone:zone] init];</span><br><span class="line">&gt; 	// 初始化方法不能赋值得其他变量也需要在这里赋值</span><br><span class="line">&gt; 	return person;</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; // 需要深拷贝的情况下需要提供一个深拷贝方法</span><br><span class="line">&gt; - (id)deepCopy</span><br><span class="line">&gt; &#123;</span><br><span class="line">&gt; 	Person *person = [[[self class] allocWithZone:zone] init];</span><br><span class="line">&gt; 	// 初始化方法不能赋值得其他变量也需要在这里赋值</span><br><span class="line">&gt; 	// 集合变量深拷贝</span><br><span class="line">&gt; 	return person;</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>重写带 copy 关键字的 setter 方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; - (void)setName:(NSString *)name</span><br><span class="line">&gt; &#123;</span><br><span class="line">&gt; 	_name = [name copy];</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>@property 的本质是什么？ivar、getter、setter 是如何生成并添加到这个类中的</p>
+<blockquote>
+<p>ivar + getter + setter，即属性有两个概念，实例变量和存取方法</p>
+<p>在类中添加属性时，会做的几件事</p>
+<ol>
+<li>在 var_list 中添加成员变量</li>
+<li>在 method_list 中添加对应的 getter 和 setter 方法</li>
+<li>在 prop_list 中添加属性描述</li>
+<li>计算属性</li>
+</ol>
+</blockquote>
+</li>
+<li><p>@protocol 和 category 中如何使用 @property</p>
+<blockquote>
+<p>protocol 中使用，只会生成 getter 和 setter 方法的声明，希望遵循协议的对象能实现该属性</p>
+<p>category 中使用，同样只会生成 getter 和 setter 方法的声明，如果要在 category 中实现属性，需要使用 runtime 的 objc_getAssociatedObject / objc_setAssociatedObject</p>
+</blockquote>
+</li>
+<li><p>runtime 如何实现 weak 属性</p>
+<blockquote>
+<p>weak 表示的是非拥有关系，setter 既不保留新值也不释放旧值和 assign 类似</p>
+<p>weak 在属性所指向的对象被销毁时，属性值也会被置为 nil</p>
+<ol>
+<li>调用 objc_release</li>
+<li>对象引用计数为0，执行 dealloc</li>
+<li>_objc_rootDealloc -&gt; object_dispose -&gt; objc_destructInstance -&gt; objc_clear_deallocating</li>
+<li>获取对象的 SideTable，如果有关联的弱引用，则调用 arr_clear_deallocating</li>
+<li>找出对象的 weak_entry_t 链表，然后挨个将弱引用置为 nil</li>
+</ol>
+<ul>
+<li>object -&gt; SideTable<ul>
+<li>RefcountMap refcnts <!--对象的引用计数--></li>
+<li>weak_table_t weak_table <!--weak 引用的全局 hash 表--><ul>
+<li>…</li>
+<li>size_t num_entries <!--用于描述 hash 表的长度--></li>
+<li>weak_entry_t *weak_entries <!--链表，负责维护和存储指向对象的所有弱引用 hash 表--><ul>
+<li>referent <!--被引用的对象--></li>
+<li>union <!--所有指向该对象的弱引用--><ul>
+<li>…</li>
+<li>weak_referrer_t <!--所有的弱引用对象的地址都是存储在这个指针的地址中--></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+</li>
+<li><p>@property中有哪些属性关键字？/ @property 后面可以有哪些修饰符？</p>
+<blockquote>
+<ul>
+<li>原子性 nonatomic / atomic ，默认是 atomic 会使用自旋锁降低性能，iOS 中绝大多数情况下使用 nonatomic 保证性能</li>
+<li>读写权限 readwrite / readonly</li>
+<li>内存管理语义 strong / copy / weak / assign / unsafe_unretained<ul>
+<li>strong </li>
+<li>copy </li>
+<li>weak </li>
+<li>assign </li>
+<li>unsafe_unretained </li>
+</ul>
+</li>
+<li>方法名 getter=<name> / setter=<name> ，getter 比较常用，setter 少数情况下使用（模型转换时，服务器返回 init 开头的字段时 getter=p_initBy, setter=setP_initBy:）</name></name></li>
+<li>不常用的 nonnull / null_resettable / nullable / class 等</li>
+</ul>
+</blockquote>
+</li>
+<li><p>weak属性需要在dealloc中置nil么？</p>
+<blockquote>
+<p>不需要，weak 属性在对象被摧毁时，属性值也会被置为 nil</p>
+<p>详细参考 <a href="#10">10. runtime 如何实现 weak 属性</a></p>
+</blockquote>
+</li>
+<li><p>@synthesize和@dynamic分别有什么作用？</p>
+<blockquote>
+<p>@property 两个对应的关键词，默认使用 @synthesize var = _var;</p>
+<ul>
+<li>@synthesize 如果没有手动实现 setter / getter 方法，编译器会自动实现</li>
+<li>@dynamic 告诉编译器不自动实现 setter / getter 方法，由用户手动实现，如果用户没有手动实现在运行时调用 setter / getter 会造成闪退</li>
+</ul>
+</blockquote>
+</li>
+<li><p>ARC下，不显式指定任何属性关键字时，默认的关键字都有哪些？</p>
+<blockquote>
+<ul>
+<li>对于基本数据类型（NSInteger / CGFloat …）(atomic, readwrite, assign)</li>
+<li>对于普通 NSObject 对象 (atomic, readwrite, strong)</li>
+</ul>
+</blockquote>
+</li>
+<li><p>用@property声明的NSString（或NSArray，NSDictionary）经常使用copy关键字，为什么？如果改用strong关键字，可能造成什么问题？</p>
+<blockquote>
+<p>当对象需要一个不可变属性时，防止传入一个可变值后遭到外界修改这个可变值</p>
+<p>如果使用 strong，那么这个属性就会指向一个可变对象，如果外界修改了这个对象，同样会影响这个属性</p>
+</blockquote>
+</li>
+<li><p>对非集合类对象的copy操作</p>
+<blockquote>
+<ul>
+<li>对不可变非集合对象 copy 是浅复制，指针复制</li>
+<li>对不可变非集合对象 mutableCopy 是深复制，内容复制</li>
+<li>对可变非集合对象 copy 是深复制，内容复制</li>
+<li>对可以非集合对象 mutableCopy 是深复制，内容复制</li>
+</ul>
+</blockquote>
+</li>
+<li><p>集合类对象的copy与mutableCopy</p>
+<blockquote>
+<ul>
+<li>对不可变集合对象 copy 是浅复制，指针复制</li>
+<li>对不可变集合对象 mutableCopy 是单层深复制，集合对象内容复制，元素仍然是指针复制</li>
+<li>对可变集合对象 copy 是单层深复制，集合对象内容复制，元素仍然是指针复制</li>
+<li>对可变集合对象 mutableCopy 是单层深复制，集合对象内容复制，元素仍然是指针复制</li>
+</ul>
+</blockquote>
+</li>
+<li><p>@synthesize合成实例变量的规则是什么？假如property名为foo，存在一个名为_foo的实例变量，那么还会自动合成新变量么？</p>
+<blockquote>
+<p>合成实例变量的规则：</p>
+<ol>
+<li>@synthesize 如果指定了成员变量的名称（@synthesize foo = _foo），会生成一个指定名称为 _foo 的变量</li>
+<li>如果 _foo 这个成员变量已经存在就不再生成 _foo 变量</li>
+<li>如果没有指定成员变量的名称（@synthesize foo），会生成一个与属性名称相同的 foo 变量</li>
+</ol>
+<p>假如 property 名为 foo ，存在一个名为 _foo 的实例变量，那么不会自动合成新变量</p>
+</blockquote>
+</li>
+<li><p>在有了自动合成属性实例变量之后，@synthesize还有哪些使用场景？</p>
+<blockquote>
+<ul>
+<li>指定实例变量的名字（@synthesize firstName = _myFirstName）</li>
+<li>当同时手动实现了 getter &amp; setter 时，关联 @property 和 ivar （@synthesize foo = _foo）</li>
+</ul>
+</blockquote>
+</li>
+<li><p>objc中向一个nil对象发送消息将会发生什么？</p>
+<blockquote>
+<ol>
+<li>方法返回值是一个对象时，那么发送给 nil 的消息将返回0（nil）</li>
+<li>会先获取 nil 的 isa 指针时就返回 nil 了，所以不会出现任何错误</li>
+</ol>
+</blockquote>
+</li>
+<li><p>objc中向一个对象发送消息[obj foo]和objc_msgSend()函数之间有什么关系？</p>
+<blockquote>
+<p>foo 方法编译之后就是 objc_msgSend(obj, @selecter(foo)) 函数调用</p>
+</blockquote>
+</li>
+<li><p>什么时候会报unrecognized selector的异常？</p>
+<blockquote>
+<p>调用对象 person 的方法 foo 时</p>
+<ol>
+<li><p>objc_msgSend(person, @selector(foo))</p>
+</li>
+<li><p>person -&gt; isa -&gt; PersonClass</p>
+</li>
+<li><p>PersonClass -&gt; cache 通过 sel 查找 IMP 函数指针不存在</p>
+</li>
+<li><p>PersonClass -&gt; method_list 通过 sel 查找 IMP 函数指针不存在</p>
+</li>
+<li><p>PersonClass -&gt; super_class -&gt; NSObjectClass</p>
+</li>
+<li><p>NSObjectClass -&gt; cache 通过 sel 查找 IMP 函数指针不存在</p>
+</li>
+<li><p>NSObjectClass -&gt; method_list 通过 sel 查找 IMP 函数指针不存在</p>
+</li>
+<li><p>NSObjectClass -&gt; super_class -&gt; nil</p>
+</li>
+<li><p>_objc_msgForward(person, @selector(foo))</p>
+</li>
+<li><p>[person resolveInstanceMethod:@selector(foo)] = NO</p>
+</li>
+<li><p>[person forwardingTargetForSelector:@selector(foo)]</p>
+<ul>
+<li>return otherObject -&gt; begin 1</li>
+<li>return nil -&gt; continue 12</li>
+</ul>
+</li>
+<li><p>[person methodSignatureForSelector:@selector(foo)]</p>
+<ul>
+<li>return nil -&gt; [person doesNotRecognizeSelector:@selector(foo)] -&gt; <strong>unrecognized selector</strong></li>
+<li>return NSMethodSignature -&gt; invocation -&gt; continue 13</li>
+</ul>
+</li>
+<li><p>[person forwardInvocation:invocation]</p>
+<ul>
+<li>转换消息的接收对象或修改调用的选择子 -&gt; begin 1</li>
+<li>[super forwardInvocation:invocation] -&gt; [person doesNotRecognizeSelector:@selector(foo)] -&gt; <strong>unrecognized selector</strong></li>
+<li>[person doesNotRecognizeSelector:@selector(foo)] -&gt; <strong>unrecognized selector</strong></li>
+</ul>
+</li>
+</ol>
+</blockquote>
+</li>
+<li><p>一个objc对象如何进行内存布局？（考虑有父类的情况）</p>
+<blockquote>
+<ul>
+<li>父类的成员变量和自身的成员变量存储在对象本身对应的内存空间</li>
+<li>对象的 isa 指针指向它的类对象，类对象存储：<ul>
+<li>对象方法列表</li>
+<li>成员变量列表</li>
+<li>属性列表</li>
+<li>类对象的 isa 指针指向它的元类对象，元类对象存储：<ul>
+<li>类方法列表</li>
+<li>元类对象的 isa 指向自己</li>
+<li>元类对象的 super_class 是父类对象的元类对象</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>布局图</p>
+<ul>
+<li>student<ul>
+<li>isa -&gt; StudentClass<ul>
+<li>isa -&gt; StudentMetaClass<ul>
+<li>isa -&gt; NSObjectMetaClass</li>
+<li>super_class -&gt; PersonMetaClass</li>
+</ul>
+</li>
+<li>super_class -&gt; PersonClass</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>person<ul>
+<li>isa -&gt; PersonClass<ul>
+<li>isa -&gt; PersonMetaClass<ul>
+<li>isa -&gt; NSObjectMetaClass</li>
+<li>super_class -&gt; NSObjectMetaClass</li>
+</ul>
+</li>
+<li>super_class -&gt; NSObjectClass</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>object<ul>
+<li>isa -&gt; NSObjectClass<ul>
+<li>isa -&gt; NSObjectMetaClass<ul>
+<li>isa -&gt; NSObjectMetaClass</li>
+<li>super_class -&gt; NSObjectClass</li>
+</ul>
+</li>
+<li>super_class -&gt; nil</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+</li>
+<li><p>一个objc对象的isa的指针指向什么？有什么作用？</p>
+<blockquote>
+<p>指向它的类对象，查找它的对象方法</p>
+</blockquote>
+</li>
+<li><p>下面的代码输出什么？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">@implementation Son : Father</span><br><span class="line">- (id)init</span><br><span class="line">&#123;</span><br><span class="line">    self = [super init];</span><br><span class="line">    if (self) &#123;</span><br><span class="line">        NSLog(@&quot;%@&quot;, NSStringFromClass([self class]));</span><br><span class="line">        NSLog(@&quot;%@&quot;, NSStringFromClass([super class]));</span><br><span class="line">    &#125;</span><br><span class="line">    return self;</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Son</p>
+<p>Son</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>self 是类的隐藏参数，指向当前调用方法这个类的实例对象，[self class] 方法调用时会转换成 objc_msgSend(self, @selector(class)) 函数调用，会去 Son 类对象的方法列表中查找 class 方法，找不到 class 方法再去 Father 类对象中查找 class 方法，找不到继续最后在 NSObject 类对象的方法列表中找到了这个 IMP，参数是当前实例</li>
+<li>super 是一个预编译指令，[super class] 方法调用时会转换成 objc_msgSendSuper({self, super_class}, @selector(class)) 函数调用，只是告诉编译器调用这个 class 方法时忽略自己的类去父类的方法列表中查找，最终还是在 NSObject 类对象的方法列表中找到了这个 IMP，参数仍然是当前实例</li>
+</ul>
+</blockquote>
+</li>
+<li><p>runtime如何通过selector找到对应的IMP地址？（分别考虑类方法和实例方法）</p>
+<blockquote>
+<ul>
+<li>实例方法就是在类对象的方法列表中（先在 cache 列表中，之后在 method_list 列表中）通过 selector（本质是一个方法名称）查找对应的方法实现即函数指针 IMP</li>
+<li>类方法就是在元类对象的方法列表中查找，同上</li>
+</ul>
+</blockquote>
+</li>
+<li><p>使用runtime Associate方法关联的对象，需要在主对象dealloc的时候释放么？</p>
+<blockquote>
+<p>不需要</p>
+<p>对象的内存销毁时间表，分为四个步骤：</p>
+<ol>
+<li>调用 - release 引用计数变成0<ul>
+<li>对象正在被销毁，生命周期即将结束</li>
+<li>不能再有新的 __weak 弱引用，否则将指向 nil</li>
+<li>调用 - dealloc</li>
+</ul>
+</li>
+<li>子类调用 - dealloc<ul>
+<li>继承关系中每一层父类都在调用 - dealloc</li>
+<li>MRC 中手动释放实例变量</li>
+</ul>
+</li>
+<li>NSObject 调用 - dealloc<ul>
+<li>只去调用 object_dispose() 函数</li>
+</ul>
+</li>
+<li>调用 object_dispose()<ul>
+<li>ARC 状态下实例变量（iVars）调用 - release</li>
+<li>实例变量调用 destructors</li>
+<li>接触所有使用 runtime Associate 方法关联的对象</li>
+<li>解除所有 __weak 引用</li>
+<li>调用 free()</li>
+</ul>
+</li>
+</ol>
+</blockquote>
+</li>
+<li><p>objc中的类方法和实例方法有什么本质区别和联系？</p>
+<blockquote>
+<ol>
+<li>类方法属于类对象的，实例方法属于实例对象的</li>
+<li>类方法只能通过类对象调用，实例方法只能通过实例对象调用</li>
+<li>类方法中的 self 是类对象，实例方法中的 self 是实例对象</li>
+<li>类方法中可以调用其他类方法不能直接调用对象方法，实例方法中可以调用实例方法也可以通过类名调用类方法</li>
+<li>类方法中不能访问成员变量，实例方法中可以访问成员变量</li>
+</ol>
+</blockquote>
+</li>
+<li><p>_objc_msgForward 函数是做什么的，直接调用它将会发生什么？</p>
+<blockquote>
+<p>_objc_msgForward 是 IMP 类型，用于消息转发（当一个对象发送一条消息，在它的方法列表中找不到相对应的 IMP 的时候返回 _objc_msgForward，最后执行这个 IMP 尝试做消息转发）</p>
+<p>直接调用它，将跳过查找 IMP 的过程直接进入消息转发（使用场景 JSPatch）</p>
+</blockquote>
+</li>
+<li><p>runtime如何实现weak变量的自动置nil？</p>
+<blockquote>
+<p>详细参考 <a href="#10">10. runtime 如何实现 weak 属性</a></p>
+</blockquote>
+</li>
+<li><p>能否向编译后得到的类中增加实例变量？能否向运行时创建的类中添加实例变量？为什么？</p>
+<blockquote>
+<p>不能向编译后的类中添加实例变量，编译后的类已经在 runtime 中注册，它的实例变量的链表和实例变量的大小已经确定</p>
+<p>运行时创建的类可以调用 class_addIvar 添加实例变量，但是需要在调用 objc_allocateClassPair 之后，objc_registerClassPair 之前，原因同上</p>
+</blockquote>
+</li>
+<li><p>runloop和线程有什么关系？</p>
+<blockquote>
+<p>runloop 运行循环是线程的基础架构部分，每个线程（包括主线程）都有与之相应的 runloop 对象</p>
+<ul>
+<li>主线程的 runloop 是默认启动的</li>
+<li>其他线程的 runloop 是默认没有启动的，如果需要更多的线程交互则可以手动配置启动 runloop，如果线程只是去执行一个长时间的已经确定的任务则不需要启动</li>
+<li>可以通过 [NSRunLoop currentRunLoop] 获取当前线程的 runloop</li>
+</ul>
+</blockquote>
+</li>
+<li><p>runloop的mode作用是什么？</p>
+<blockquote>
+<p>runloop 在某个时刻只能跑在一个 mode 下，指定事件在 runloop 中的哪种 mode 下执行，分为：</p>
+<ul>
+<li>Default 模式<ul>
+<li>定义：NSDefaultRunLoopMode(Cocoa)</li>
+<li>描述：默认模式中几乎包含了所有输入源(NSConnection除外),一般情况下应使用此模式，这是最常用的run loop mode</li>
+</ul>
+</li>
+<li>Connection 模式 <ul>
+<li>定义：NSConnectionReplyMode(Cocoa)</li>
+<li>描述：处理 NSConnection 对象相关事件，系统内部使用，这个mode表明 NSConnection 对象等待 reply，用户基本不会使用</li>
+</ul>
+</li>
+<li>Modal 模式<ul>
+<li>定义：NSModalPanelRunLoopMode(Cocoa)</li>
+<li>描述：处理 modal panels 事件,需要等待处理的 input source 为 modal panel 时设置，比如 NSSavePanel 和 NSOpenPanel</li>
+</ul>
+</li>
+<li>Event tracking 模式<ul>
+<li>定义：UITrackingRunLoopMode(iOS) NSEventTrackingRunLoopMode(cocoa)</li>
+<li>描述：使用该模式来处理用户界面相关的事件，例如在拖动 loop 或其他 user interface tracking loops 时处于此种模式下，在此模式下会限制输入事件的处理。例如，当手指按住 UITableView 拖动时就会处于此模式</li>
+</ul>
+</li>
+<li>Common 模式<ul>
+<li>定义：NSRunLoopCommonModes</li>
+<li>描述：集合，默认包括 NSDefaultRunLoopMode 和 UITrackingRunLoopMode</li>
+</ul>
+</li>
+</ul>
+<p>典型例子 NSTimer </p>
+</blockquote>
+</li>
+<li><p>以+ scheduledTimerWithTimeInterval…的方式触发的timer，在滑动页面上的列表时，timer会暂定回调，为什么？如何解决？</p>
+<blockquote>
+<p>scheduledTimerWithTimeInterval… 的方式触发的 timer 默认以 Default 模式添加到主运行循环中的，当滚动时 runloop 切换到了 UITrackingRunLoopMode 模式，导致 NSTimer 不会再调用直至 runloop 切回 Default 模式</p>
+<p>把 timer 添加到运行循环时指定在 runloop 中的优先级是 NSRunLoopCommonModes</p>
+</blockquote>
+</li>
+<li><p>猜想runloop内部是如何实现的？</p>
+<blockquote>
+<p>一个线程通常来说一次只能执行一个任务，任务完成后线程就是退出，如果不希望线程退出，而是让线程随时处理下一个事件</p>
+<p>在线程中不停的循环，如果获取到唤醒事件则处理事件，执行完事件后进入睡眠状态等待下一次获取到新的唤醒事件，如此循环</p>
+</blockquote>
+</li>
+<li><p>objc使用什么机制管理对象内存？</p>
+<blockquote>
+<p>通过引用计数的机制来决定对象是否释放以此来管理对象内存的</p>
+<p>每次 runloop 的时候会去检查对象的 retainCount，如果 retainCount = 0 说明没有地方再需要用到这个对象了，然后释放对象</p>
+</blockquote>
+</li>
+<li><p>ARC通过什么方式帮助开发者管理内存？</p>
+<blockquote>
+<p>相对于 MRC，ARC 是在编译期和运行期两部分共同帮助开发者管理内存的</p>
+<ul>
+<li><p>在编译期找到合适的位置插入合适的 release / retain 等内存管理方法</p>
+</li>
+<li><p>运行期避免没必要的 autorelease / retain</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt;   + (instancetype)createSark &#123;</span><br><span class="line">&gt;       id tmp = [self new];</span><br><span class="line">&gt;       return objc_autoreleaseReturnValue(tmp); // 代替我们调用autorelease</span><br><span class="line">&gt;   &#125;</span><br><span class="line">&gt;   // caller</span><br><span class="line">&gt;   id tmp = objc_retainAutoreleasedReturnValue([Sark createSark]) // 代替我们调用retain</span><br><span class="line">&gt;   Sark *sark = tmp;</span><br><span class="line">&gt;   objc_storeStrong(&amp;sark, nil); // 相当于代替我们调用了release</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<ul>
+<li>objc_autoreleaseReturnValue 调用时，对象会被存储在Thread Local Storage（TLS）线程局部存储中，然后不调用 autorelease 直接返回对象</li>
+<li>objc_retainAutoreleasedReturnValue 外部接收这个返回对象时发现 TLS 中有这个对象就直接返回这个对象不做 retain，避免了多余的 release / retain 操作</li>
+</ul>
+</blockquote>
+</li>
+<li><p>不手动指定autoreleasepool的前提下，一个autorealese对象在什么时刻释放？（比如在一个vc的viewDidLoad中创建）</p>
+<blockquote>
+<p>在这个 runloop 迭代完成之后，autorelease 对象出了作用域之后会被添加到最近的 autoreleasePool 中，如果没有手动添加 autoreleasePool 会被添加到当前迭代的 runloop 自动添加的 autoreleasePool 中，等待迭代结束之后释放</p>
+<p>viewDidLoad 中创建的 autorelease 对象会在 viewDidAppear 方法执行前释放</p>
+</blockquote>
+</li>
+<li><p>BAD_ACCESS在什么情况下出现？</p>
+<blockquote>
+<ul>
+<li>访问野指针</li>
+<li>死循环</li>
+</ul>
+</blockquote>
+</li>
+<li><p>苹果是如何实现autoreleasepool的？</p>
+<blockquote>
+<p>以队列数组的形式实现的，主要用到了三个函数</p>
+<ul>
+<li>objc_autoreleasepoolPush</li>
+<li>objc_autoreleasepoolPop </li>
+<li>objc_autorelease</li>
+</ul>
+<p>详细参考 <a href="#56">56. Autorelease对象什么时候释放？</a></p>
+</blockquote>
+</li>
+<li><p>使用block时什么情况会发生引用循环，如何解决？</p>
+<blockquote>
+<p>一个对象中强引用了 block，这个 block 又强引用了这个对象就会造成引用循环</p>
+<ul>
+<li>在使用 block 时用先用 <code>__weak</code> 或 <code>__block</code> 修饰符修饰对象</li>
+<li>或者在 block 或者对象中强制置另一方为 nil</li>
+</ul>
+</blockquote>
+</li>
+<li><p>在block内如何修改block外部变量？</p>
+<blockquote>
+<p>使用 <code>__block</code> 修饰符修饰外部变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; __block int a = 0;</span><br><span class="line">&gt; void (^fooBlock)(void) = ^&#123;</span><br><span class="line">&gt;   a = 10;</span><br><span class="line">&gt; &#125;;</span><br><span class="line">&gt; fooBlock();</span><br><span class="line">&gt; // int 最后的值是 10</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>block 不允许修改外部变量的值</p>
+<p>使用 <code>__block</code> 修饰之后的变量</p>
+<ol>
+<li>将栈上的用 <code>__block</code> 修饰后的变量封装成一个结构体存储在栈上</li>
+<li>没有 copy 之前，访问这个变量变成了 struct-&gt;__forwarding(指向 struct 自身)-&gt;变量</li>
+<li>当它被 block 捕获之后，被 copy 到了堆上</li>
+<li>copy 之后，在 block 中访问这个变量变成了 newstruct-&gt;__forwarding(指向 newstruct 自身)-&gt;变量</li>
+<li>栈上的这个结构体中的 <code>__forwarding</code> 指针由指向自己变成了指向堆中复制的结构体</li>
+<li>之后在 block 之外访问这个变量变成了 struct-&gt;__forwarding(指向 newstruct)-&gt;变量</li>
+<li>保证了栈上和 block 内（通常在堆上）都可以访问 newstruct 内的变量</li>
+</ol>
+</blockquote>
+</li>
+<li><p>使用系统的某些block api（如UIView的block版本写动画时），是否也考虑引用循环问题？</p>
+<blockquote>
+<p>不需要，引用循环是双向强引用或间接的双向强引用之后才能产生的，单向的强引用不会造成引用循环</p>
+</blockquote>
+</li>
+<li><p>GCD的队列（dispatch_queue_t）分哪两种类型？</p>
+<blockquote>
+<ul>
+<li>串行队列</li>
+<li>并行队列</li>
+</ul>
+</blockquote>
+</li>
+<li><p>如何用GCD同步若干个异步调用？（如根据若干个url异步加载多张图片，然后在都下载完成后合成一张整图）</p>
+<blockquote>
+<p>使用 dispatch_group 追加 block</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);</span><br><span class="line">&gt; dispatch_group_t group = dispatch_group_create();</span><br><span class="line">&gt; dispatch_group_async(group, queue, ^&#123; /*加载图片1 */ &#125;);</span><br><span class="line">&gt; dispatch_group_async(group, queue, ^&#123; /*加载图片2 */ &#125;);</span><br><span class="line">&gt; dispatch_group_async(group, queue, ^&#123; /*加载图片3 */ &#125;); </span><br><span class="line">&gt; dispatch_group_notify(group, dispatch_get_main_queue(), ^&#123;</span><br><span class="line">&gt;         // 合并图片</span><br><span class="line">&gt; &#125;);</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>dispatch_barrier_async的作用是什么？</p>
+<blockquote>
+<p>只能搭配自定义队列使用，不能使用全局队列，否则和 dispatch_async 一样</p>
+<p>当前队列中的全部任务执行完成之后去执行 dispatch_barrier_async 追加的任务，之后队列恢复</p>
+<p>能解决 45 ？</p>
+</blockquote>
+</li>
+<li><p>苹果为什么要废弃dispatch_get_current_queue？</p>
+<blockquote>
+<p>容易造成死锁</p>
+</blockquote>
+</li>
+<li><p>以下代码运行结果如何？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">- (void)viewDidLoad</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    NSLog(@&quot;1&quot;);</span><br><span class="line">    dispatch_sync(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">        NSLog(@&quot;2&quot;);</span><br><span class="line">    &#125;);</span><br><span class="line">    NSLog(@&quot;3&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>1</p>
+<p>主线程死锁了</p>
+</blockquote>
+</li>
+<li><p>addObserver:forKeyPath:options:context:各个参数的作用分别是什么，observer中需要实现哪个方法才能获得KVO回调？</p>
+<blockquote>
+<p>observer 观察者，负责处理监听事件的对象</p>
+<p>keyPath 观察的键路径</p>
+<p>options 观察的选项</p>
+<p>context 上下文</p>
+<p>observer 中需要实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; - (void)observeValueForKeyPath:ofObject:change:context:</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>如何手动触发一个value的KVO</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; [self willChangeValueForKey:@&quot;now&quot;];</span><br><span class="line">&gt; [self didChangeValueForKey:@&quot;now&quot;];</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>需两个方法成对调用，否则不触发</p>
+<p>手动触发一般只有在希望能控制“回调的调用时机”时才用到</p>
+</blockquote>
+</li>
+<li><p>若一个类有实例变量 NSString *_foo ，调用setValue:forKey:时，可以以foo还是 _foo 作为key？</p>
+<blockquote>
+<p>都可以</p>
+</blockquote>
+</li>
+<li><p>KVC的keyPath中的集合运算符如何使用？</p>
+<blockquote>
+<ul>
+<li><p>必须用在集合对象上或者一个普通对象的集合属性上</p>
+</li>
+<li><p>常见的集合运算符 @avg @count @sum @max @min</p>
+</li>
+<li><p>用法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;   NSArray *persons = @[person1, person2, person3, person4];</span><br><span class="line">&gt;   NSInteger avgAge = [persons valueForKeyPath:@&quot;@avg.age&quot;];</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</blockquote>
+</li>
+<li><p>KVC和KVO的keyPath一定是属性么？</p>
+<blockquote>
+<p>KVC 可以是成员变量</p>
+<p>KVO 成员变量需要手动设定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&gt; - (void)setAge:(NSInteger)age</span><br><span class="line">&gt; &#123;</span><br><span class="line">&gt;     [self willChangeValueForKey:@&quot;age&quot;];</span><br><span class="line">&gt;     _age = age;</span><br><span class="line">&gt;     [self didChangeValueForKey:@&quot;age&quot;];</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br><span class="line">&gt; + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key</span><br><span class="line">&gt; &#123;</span><br><span class="line">&gt;     if ([key isEqualToString:@&quot;age&quot;]) &#123;</span><br><span class="line">&gt;         return NO;</span><br><span class="line">&gt;     &#125;</span><br><span class="line">&gt;     return [super automaticallyNotifiesObserversForKey:key];</span><br><span class="line">&gt; &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>如何关闭默认的KVO的默认实现，并进入自定义的KVO实现？</p>
+<blockquote>
+<p>参考 <a href="#53">53. KVC和KVO的keyPath一定是属性么？</a></p>
+</blockquote>
+</li>
+<li><p>apple用什么方式实现对一个对象的KVO？</p>
+<blockquote>
+<p>当第一次观察一个对象时，runtime 会动态的创建一个当前对象的子类，并重写被观察属性的 setter 方法，在 setter 方法之前和之后添加对应的方法，然后调整对象的 isa 指针指向动态创建的子类</p>
+</blockquote>
+</li>
+<li><p>IBOutlet连出来的视图属性为什么可以被设置成weak?</p>
+<blockquote>
+<p>xib 中视图属性已经被视图强引用了</p>
+<p>storyboard 中在创建 VC 时 <code>_topLevelObjectsToKeepAliveFromStoryboard</code> 的私有数组强引用了所有顶层视图属性</p>
+</blockquote>
+</li>
+<li><p>IB中User Defined Runtime Attributes如何使用？</p>
+<blockquote>
+<p>通过 KVO 的方式配置一些 interface builder 中不能配置的属性，可以让 ViewController 更加轻量</p>
+</blockquote>
+</li>
+<li><p>如何调试BAD_ACCESS错误</p>
+<blockquote>
+<ul>
+<li>全局断点</li>
+<li>Scheme 中打开 Zombie Objects</li>
+</ul>
+</blockquote>
+</li>
+<li><p>lldb（gdb）常用的调试命令？ </p>
+<blockquote>
+<ul>
+<li>po 打印值</li>
+<li>p 打印值 + 内存地址 + 类型</li>
+<li>call 方法调用并打印 返回值 + 内存地址 + 类型</li>
+<li>…</li>
+</ul>
+</blockquote>
+</li>
+<li><p>Autorelease对象什么时候释放？</p>
+<blockquote>
+<ul>
+<li>在没有手动加 autoreleasePool 的情况下，autorelease 对象是在当前的 runloop 迭代结束时释放的，原因是系统在每个 runloop 迭代中都加入了自动释放池 Push 和 Pop<ul>
+<li>举例，viewDidload 和 viewWillAppear 是在同一个 runloop 迭代中调用的，因此在 viewWillAppear 中可以访问到 viewDidLoad 定义的临时变量（weak）还没有被释放，可以手动在 viewDidLoad 中添加 autoreleasePool 来提前释放</li>
+</ul>
+</li>
+<li>autoreleasePool 是按线程一一对应的（autoreleasePoolPage 中的 thread 指针指向当前线程）</li>
+<li>autoreleasePool 没有单独的结构，它是以 autoreleasePoolPage 以双向列表的形式组合而成<ul>
+<li>autoreleasePoolPage 每个对象占用 4kb(虚拟内存一页的大小) 内存</li>
+<li>除去 autoreleasePoolPage 自身实力变量所占空间，其余空间均用来存储 autorelease 对象地址</li>
+<li>next 指针指向最新加进来的 autorelease 对象的下一个位置</li>
+<li>一个 autoreleasePoolPage 内存被占满后会新建一个 autoreleasePoolPage 对象链接到双向链表，之后新加的 autorelease 对象被加入到新的 page 中</li>
+<li>向一个对象发送 autorelease 消息就是将这个对象加入到当前 page 的栈顶 next 指针指向的位置，并将 next 上移</li>
+<li>objc_autoreleasePoolPush 调用时，runtime 就向当前 page 中添加了一个<code>哨兵对象</code>，值为 nil，并返回这个哨兵对象的地址作为 objc_autoreleasePoolPop 的参数</li>
+<li>objc_autoreleasePoolPop 调用时，从最新加入的对象一直向下清理，可以跨越多个 page 直到哨兵对象的地址，并向下移动 next 指针到正确位置</li>
+</ul>
+</li>
+<li>enumerateObjectsUsingBlock 的 block 中内部自动添加了 autoreleasePool</li>
+</ul>
+</blockquote>
+</li>
+<li><p>GCD 详解</p>
+<blockquote>
+<ol>
+<li><p>任务</p>
+<p>任务就是需要在线程中执行的操作。GCD 中需要执行的代码用 block 封装好，然后将任务添加到队列中并指定任务的执行方式，等待 CPU 从队列中取出任务在对应的线程中执行</p>
+</li>
+<li><p>队列</p>
+<ol>
+<li><p>串行队列</p>
+<p>串行队列一次只能调度一个任务，任务完成之后才能调度下一个任务</p>
+</li>
+<li><p>并发队列</p>
+<p>并发队列可以一次调度多个任务，并发功能只有在异步的函数（dispatch_async）下才有效，并发的数量由 GCD 底层决定</p>
+</li>
+<li><p>主队列</p>
+<p>是 GCD 自带的一种特殊的串行队列，负责在主线程上调度任务</p>
+<ul>
+<li>主队列异步任务，如果主线程上当前有任务在执行，则等待主线程空闲之后执行</li>
+<li>主队列同步任务，阻塞主线程，代码任务需要马上执行，但是主线程现在正在执行代码任务的方法体任务，代码任务就需要等待方法体任务，而主线程又需要等待代码任务完成之后去完成下面的任务，相互等待</li>
+</ul>
+</li>
+<li><p>全局并发队列</p>
+<p>全局并发队列是一个并发队列，没有队列名称，MRC 中不需要去手动释放全局队列</p>
+</li>
+</ol>
+</li>
+<li><p>开发中如何选择队列</p>
+</li>
+</ol>
+</blockquote>
+</li>
+<li><p>同步、异步、串行、并发</p>
+<blockquote>
+<p>同步和异步代表会不会开辟新线程</p>
+<ul>
+<li>同步不会开辟新线程</li>
+<li>异步会开辟新线程</li>
+</ul>
+<p>串行和并发代表任务执行的方式</p>
+<ul>
+<li>串行顺序执行队列中的任务</li>
+<li>并发可以一次在多个线程中执行多个任务</li>
+</ul>
+<p>异步串行、异步并发、同步串行、同步并发，任务的执行的区别</p>
+<ul>
+<li>异步串行会开辟一条新线程来顺序执行串行队列中的任务</li>
+<li>异步并发会开辟多条线程来同时执行并发队列中的任务</li>
+<li>同步串行不会开辟新线程，在当前线程顺序执行串行队列中的任务</li>
+<li>同步并发不会开辟新线程，在当前线程顺序执行并行队列中的任务</li>
+</ul>
+</blockquote>
+</li>
+<li><p>HTTPS 通信过程</p>
+<ol>
+<li>客户端发起 HTTPS 请求</li>
+<li>服务端发送公钥（SSL 证书的公钥、私钥）给客户端</li>
+<li>客户端解析公钥，私钥中包含了颁发机构、过期时间等，发现异常后客户端弹出警告框提示用户存在问题由用户决定是否继续</li>
+<li>客户端用公钥加密一个随机值传送给服务端</li>
+<li>服务端接收到这个公钥加密后的随机值，用私钥解密得到随机值</li>
+<li>服务端把响应信息用随机值加密后传送给客户端</li>
+<li>客户端接收到这个随机值加密后的响应信息，用随机值解密获取到响应信息</li>
+</ol>
+</li>
+</ol>
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/08/start/" class="prev">上一篇</a></div><div id="disqus_thread"></div><script>var disqus_shortname = 'seansun';
+var disqus_identifier = '2018/04/14/“问题集”的副本/';
+var disqus_title = '';
+var disqus_url = 'http://blog.ghostpan.com/2018/04/14/“问题集”的副本/';
+(function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();</script><script id="dsq-count-scr" src="//seansun.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://blog.ghostpan.com">Ghostpan</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>

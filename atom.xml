@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Ghostpan&#39;s blog</title>
+  
+  
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://blog.ghostpan.com/"/>
+  <updated>2018-05-09T04:14:13.858Z</updated>
+  <id>http://blog.ghostpan.com/</id>
+  
+  <author>
+    <name>Ghostpan</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>博客迁移</title>
+    <link href="http://blog.ghostpan.com/2018/05/08/start/"/>
+    <id>http://blog.ghostpan.com/2018/05/08/start/</id>
+    <published>2018-05-08T02:44:47.000Z</published>
+    <updated>2018-05-09T04:14:13.858Z</updated>
+    
+    <content type="html"><![CDATA[<p>重新开始一个博客，改变生活态度换一种生活方式<br><a id="more"></a></p><h3 id="用-Hexo-作为博客框架"><a href="#用-Hexo-作为博客框架" class="headerlink" title="用 Hexo 作为博客框架"></a>用 Hexo 作为博客框架</h3><p>平时也有经常看一些其他人的博客，有在免费空间上的，也有用独立博客，果然还是比较喜欢独立博客，毕竟可以定制化嘛。</p><p>比较喜欢简洁的风格，所以选用了 <a href="https://hexo.io/zh-cn/" target="_blank" rel="noopener">Hexo</a>(<a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank" rel="noopener">apollo</a> 主题) 作为博客框架。</p><h3 id="博客记录的内容"><a href="#博客记录的内容" class="headerlink" title="博客记录的内容"></a>博客记录的内容</h3><p>陆续整理之前的博客，在新博客上展示</p><p>分享记录以后工作中学习中遇到的问题和解决方法</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;重新开始一个博客，改变生活态度换一种生活方式&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="其他" scheme="http://blog.ghostpan.com/tags/%E5%85%B6%E4%BB%96/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Xcode 修改新建文件中文件注释里的信息</title>
+    <link href="http://blog.ghostpan.com/2017/10/25/customize-text-macros/"/>
+    <id>http://blog.ghostpan.com/2017/10/25/customize-text-macros/</id>
+    <published>2017-10-25T10:04:52.000Z</published>
+    <updated>2018-05-09T07:52:21.882Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近用别人电脑写程序的时候发现用 Xcode 新建文件的文件注释中 Created by 是其他人的名字！！！！明显文件注释中的 Create by 默认取得当前电脑用户的用户名。</p><p>查阅了一下网上修改 Create by 的方法发现都不太合适，翻阅 Xcode Help 找到了想要的方法。<br><a id="more"></a></p><h3 id="网络上常见的修改方法"><a href="#网络上常见的修改方法" class="headerlink" title="网络上常见的修改方法"></a>网络上常见的修改方法</h3><p>常见的修改方法有大概这两种：</p><ol><li>在Xcode安装包中修改官方模板文件</li><li>设置当前电脑用户的用户名</li></ol><h3 id="Xcode-官方提供的修改方法"><a href="#Xcode-官方提供的修改方法" class="headerlink" title="Xcode 官方提供的修改方法"></a>Xcode 官方提供的修改方法</h3><p>在 Xcode Help 中看到了 <a href="https://help.apple.com/xcode/mac/9.0/index.html?localePath=en.lproj#/dev91a7a31fc" target="_blank" rel="noopener">Customize text macros</a> 里面提到只需要在合适的地方添加一个 <code>IDETemplateMacros.plist</code> 文件就可以解决在不同的情况下使用不同的文件注释，优先级递减：</p><ol><li><p>Project user data: <projectname>.xcodeproj/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist.</projectname></p><blockquote><p>仅仅对单个 Project 且单个用户有效。</p></blockquote></li><li><p>Project shared data: <projectname>.xcodeproj/xcshareddata/IDETemplateMacros.plist</projectname></p><blockquote><p>对单个 Project 的所有用户有效。</p></blockquote></li><li><p>Workspace user data: <workspacename>.xcworkspace/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist.</workspacename></p><blockquote><p>对单个 Workspace 且单个用户有效。</p></blockquote></li><li><p>Workspace shared data: <workspacename>.xcworkspace/xcshareddata/IDETemplateMacros.plist.</workspacename></p><blockquote><p>对单个 Workspace 的所有用户有效。</p></blockquote></li><li><p>User Xcode data: ~/Library/Developer/Xcode/UserData/IDETemplateMacros.plist.</p><blockquote><p>对单个用户的所有新建文件有效。</p></blockquote></li></ol><h3 id="常用的属性"><a href="#常用的属性" class="headerlink" title="常用的属性"></a>常用的属性</h3><p>Xcode 提供了多个可用于自定义的属性，下面列举几个常用的属性：</p><ol><li>FILEHEADER，替换新建文件的所有文件注释</li><li>FULLUSERNAME，替换 Create by 作者</li><li>NSHUMANREADABLECOPYRIGHTPLIST，版权申明</li></ol><h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>相对于网络上普遍采用的方法，Xcode 提供的方法更加的灵活简单。<br>很多人喜欢给自己的电脑用户名起一个比较炫的名字，但是团队项目中很容易穿插各种奇奇怪怪的名字，乱而不规范。采用 Xcode 提供的方式去让项目变得更规范更整洁吧。</p><h3 id="References"><a href="#References" class="headerlink" title="References:"></a>References:</h3><p><a href="https://help.apple.com/xcode/mac/9.0/index.html?localePath=en.lproj#/dev91a7a31fc" target="_blank" rel="noopener">Customize text macros</a> </p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;最近用别人电脑写程序的时候发现用 Xcode 新建文件的文件注释中 Created by 是其他人的名字！！！！明显文件注释中的 Create by 默认取得当前电脑用户的用户名。&lt;/p&gt;
+&lt;p&gt;查阅了一下网上修改 Create by 的方法发现都不太合适，翻阅 Xcode Help 找到了想要的方法。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="iOS" scheme="http://blog.ghostpan.com/tags/iOS/"/>
+    
+      <category term="Xcode" scheme="http://blog.ghostpan.com/tags/Xcode/"/>
+    
+      <category term="小技巧" scheme="http://blog.ghostpan.com/tags/%E5%B0%8F%E6%8A%80%E5%B7%A7/"/>
+    
+  </entry>
+  
+</feed>
