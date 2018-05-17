@@ -6,33 +6,16 @@
 <li>设置当前电脑用户的用户名</li>
 </ol>
 <h3 id="Xcode-官方提供的修改方法"><a href="#Xcode-官方提供的修改方法" class="headerlink" title="Xcode 官方提供的修改方法"></a>Xcode 官方提供的修改方法</h3><p>在 Xcode Help 中看到了 <a href="https://help.apple.com/xcode/mac/9.0/index.html?localePath=en.lproj#/dev91a7a31fc" target="_blank" rel="noopener">Customize text macros</a> 里面提到只需要在合适的地方添加一个 <code>IDETemplateMacros.plist</code> 文件就可以解决在不同的情况下使用不同的文件注释，优先级递减：</p>
-<ol>
-<li><p>Project user data: <projectname>.xcodeproj/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist.</projectname></p>
-<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Project user data: &lt;ProjectName&gt;.xcodeproj/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist</span><br></pre></td></tr></table></figure>
 <p>仅仅对单个 Project 且单个用户有效。</p>
-</blockquote>
-</li>
-<li><p>Project shared data: <projectname>.xcodeproj/xcshareddata/IDETemplateMacros.plist</projectname></p>
-<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Project shared data: &lt;ProjectName&gt;.xcodeproj/xcshareddata/IDETemplateMacros.plist</span><br></pre></td></tr></table></figure>
 <p>对单个 Project 的所有用户有效。</p>
-</blockquote>
-</li>
-<li><p>Workspace user data: <workspacename>.xcworkspace/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist.</workspacename></p>
-<blockquote>
-<p>对单个 Workspace 且单个用户有效。</p>
-</blockquote>
-</li>
-<li><p>Workspace shared data: <workspacename>.xcworkspace/xcshareddata/IDETemplateMacros.plist.</workspacename></p>
-<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Workspace user data: &lt;WorkspaceName&gt;.xcworkspace/xcuserdata/[username].xcuserdatad/IDETemplateMacros.plist</span><br></pre></td></tr></table></figure>
+<p>对单个 Workspace 且单个用户有效。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Workspace shared data: &lt;WorkspaceName&gt;.xcworkspace/xcshareddata/IDETemplateMacros.plist</span><br></pre></td></tr></table></figure>
 <p>对单个 Workspace 的所有用户有效。</p>
-</blockquote>
-</li>
-<li><p>User Xcode data: ~/Library/Developer/Xcode/UserData/IDETemplateMacros.plist.</p>
-<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User Xcode data: ~/Library/Developer/Xcode/UserData/IDETemplateMacros.plist</span><br></pre></td></tr></table></figure>
 <p>对单个用户的所有新建文件有效。</p>
-</blockquote>
-</li>
-</ol>
 <h3 id="常用的属性"><a href="#常用的属性" class="headerlink" title="常用的属性"></a>常用的属性</h3><p>Xcode 提供了多个可用于自定义的属性，下面列举几个常用的属性：</p>
 <ol>
 <li>FILEHEADER，替换新建文件的所有文件注释</li>
@@ -41,7 +24,7 @@
 </ol>
 <h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>相对于网络上普遍采用的方法，Xcode 提供的方法更加的灵活简单。<br>很多人喜欢给自己的电脑用户名起一个比较炫的名字，但是团队项目中很容易穿插各种奇奇怪怪的名字，乱而不规范。采用 Xcode 提供的方式去让项目变得更规范更整洁吧。</p>
 <h3 id="References"><a href="#References" class="headerlink" title="References:"></a>References:</h3><p><a href="https://help.apple.com/xcode/mac/9.0/index.html?localePath=en.lproj#/dev91a7a31fc" target="_blank" rel="noopener">Customize text macros</a> </p>
-</div></article></div></main><footer><div class="paginator"><a href="/2018/05/08/start/" class="prev">上一篇</a></div><div id="disqus_thread"></div><script>var disqus_shortname = 'seansun';
+</div></article></div></main><footer><div class="paginator"><a href="/2018/05/08/start/" class="prev">PREV</a><a href="/2016/04/03/runtime-3/" class="next">NEXT</a></div><div id="disqus_thread"></div><script>var disqus_shortname = 'seansun';
 var disqus_identifier = '2017/10/25/customize-text-macros/';
 var disqus_title = 'Xcode 修改新建文件中文件注释里的信息';
 var disqus_url = 'http://blog.ghostpan.com/2017/10/25/customize-text-macros/';
